@@ -1,21 +1,22 @@
 
 
-// This version of Rock Paper Scissors will be played in 5 rounds against
-// the computer. Remember: rock beats scissors, paper beats rock and scissors
-// beat paper.
+// Regarding the whoBeatsWho array: it keeps track of each possible combination of choices,
+// and of the winner of each.
 
 
-// To verify who beats who, I decided to keep track in a 3D array. I've
-// never done anything like this before. I am not sure this is going to
-// work. I decided to keep track of what number correspondes to what in
-// their own 2D arrays.
+// whoBeatsWho[index][0] && whoBeatsWho[index][1]
+// moves[index][0] = moves[index][1]
+
+// 0 = 'Rock'
+// 1 = 'Paper'
+// 2 = 'Scissors'
 
 
-// Spoiler: It did actually work. I am proud.
+// whoBeatsWho[index][2]
 
-
-// 0 = rock  1 = paper  2 = scissors
-// 0 = player  1 = computer  2 = tie
+// 0 = 'Player'
+// 1 = 'Computer'
+// 2 = 'Ties'
 
 
 const whoBeatsWho = [
@@ -31,150 +32,164 @@ const whoBeatsWho = [
 ]
 
 const moves = [
-	[0, 'rock'],
-	[1, 'paper'],
-	[2, 'scissors']
+	[0, 'Rock'],
+	[1, 'Paper'],
+	[2, 'Scissors']
 ]
 
-const whoWins = [
-	[0, 'player'],
-	[1, 'computer'],
-	[2, 'tie']
+const scoreBoard = [
+	[0, 'Player', 0],
+	[1, 'Computer', 0],
+	[2, 'Ties', 0]
 ]
 
+const container = document.querySelector('#container')
+const buttons = []
 
-// We need to keep track of the player's choice and the computer's, I
-// decided that it made sense to keep it in two different global variables.
-
-// We also need to keep track of the number of rounds that we've already
-// played.
-
-
-let playerSelection = 0
-let computerSelection = 0
-let playedRounds = 0
-let roundWinners = [
-	[0, 0],
-	[1, 0],
-	[2, 0]
-]
-
-
-// We need to prompt for the player's choice, and then we need to save
-// that selection into its own variable: playerSelection
-// We then need to 'translate' the player's given choice to a number from
-// 0 to 2. To do so, I loop into the 'moves' array and, if the playerChoice
-// corresponded to the name of the move, it returns the matching number.
-
-
-function getPlayerChoice() {
-	let playerChoice = prompt('What is your chosen move? Rock, Paper or Scissors ?').toLowerCase()
-	
-	for (let index = 0; index <= moves.length; index++) {
-		if (playerChoice == moves[index][1]) {
-			return moves[index]
-		}
-	}
+function addBtn() {
+	moves.forEach((move) => {
+		let btn = document.createElement('button')
+				btn.dataset.move = move[0]
+				btn.textContent = move[1]
+		
+		buttons.push(btn)
+		container.appendChild(btn)
+	})
 }
 
+addBtn()
 
-// Since we are playing against the computer, we need to generate a random
-// move. To do such thing, we will generate a number between 0 and 2, read
-// the previous comment and look up for the varaibles 'moves' to know what
-// each number correspondes to.
+buttons.forEach((btn) => {
+	btn.addEventListener('click', () => playRound(btn.dataset.move))
+})
 
+// We need to display the player's choice, the computer's choice, the
+// round winner and the game winner in the page, for this I will create
+// a series of HTML elements.
+
+let choices = document.createElement('div')
+let playerChoiceParagraph = document.createElement('p')
+let computerChoiceParagraph = document.createElement('p')
+let winnerParagraph = document.createElement('p')
+let winningMove = document.createElement('p')
+
+let choicesElements = [playerChoiceParagraph, computerChoiceParagraph, winnerParagraph, winningMove]
+		choicesElements.forEach((el) => {
+			choices.appendChild(el)
+		})
+
+container.appendChild(choices)
+
+// We also need to be able to reset the content of these HTML elements
+// when required.
+
+function resetChoicesElements() {
+	choicesElements.forEach((el) => {
+		el.textContent = ''
+	})
+	
+	resetScoreBoard()
+}
+
+// We need to display the running score so, I will create a div with a
+// list. I will then generate three <li> elements to contain the number
+// of wins for each player.
+
+let scoreBoardDiv = document.createElement('div')
+let scoreBoardList = document.createElement('ul')
+
+scoreBoardDiv.appendChild(scoreBoardList)
+container.appendChild(scoreBoardDiv)
+
+function addScoresToList() {
+	scoreBoard.forEach((score) => {
+		let listElement = document.createElement('li')
+				listElement.textContent = `${score[1]}: ${score[2]}`
+				
+		scoreBoardList.appendChild(listElement)
+	})
+}
+
+addScoresToList()
+
+// We also need to update the list elements at each round.
+
+function updateScoreBoardList() {
+	let scoreBoardListElements = document.querySelectorAll('li')
+	
+	scoreBoard.forEach((score) => {
+		let element = scoreBoardListElements[scoreBoard.indexOf(score)]
+				element.textContent = `${score[1]}: ${score[2]}`
+	})
+}
+
+// We also need to reset the scoreBoard.
+
+function resetScoreBoard() {
+	scoreBoard.forEach((score) => {
+		score[2] = 0
+	})
+	
+	updateScoreBoardList()
+}
 
 function getComputerChoice() {
 	return moves[Math.floor(Math.random() * 3)]
 }
 
+// In the previous version I used to loop in the whoBeatsWho array to
+// obtain the same thing, this is so much easier.
 
-// console.log(getComputerChoice()[1])
-
-
-// We will be playing five rounds, but first we need to be able to start
-// a new round. We also need to keep track of all played rounds, and of the
-// winner of each one. We will push the round winner to the roundWinners array.
-
-
-function playRound() {
-	playerSelection = getPlayerChoice()
-	computerSelection = getComputerChoice()
-	
-	roundWinner = getRoundWinner(playerSelection[0], computerSelection[0])
-	roundWinners[roundWinner][1]++
-	
-	let capitalizedPlayerChoice = `${moves[playerSelection[0]][1].toString()[0].toUpperCase()}${moves[playerSelection[0]][1].toString().substring(1)}`
-	let capitalizedComputerChoice = `${moves[computerSelection[0]][1].toString()[0].toUpperCase()}${moves[computerSelection[0]][1].toString().substring(1)}`
-	let capitalizedRoundWinner = `${whoWins[roundWinner][1].toString()[0].toUpperCase()}${whoWins[roundWinner][1].toString().substring(1)}`
-	
-	console.log(`Number of round: ${playedRounds + 1}`)
-	
-	console.log(`Your choice was: ${capitalizedPlayerChoice}`)
-	console.log(`The computer's choice was: ${capitalizedComputerChoice}.`)
-	
-	if (whoWins[roundWinner][0] == 0) {
-		console.log(`${capitalizedPlayerChoice} beats ${capitalizedComputerChoice}.`)
-	} else if (whoWins[roundWinner][0] == 1) {
-		console.log(`${capitalizedComputerChoice} beats ${capitalizedPlayerChoice}.`)
-	} else if (whoWins[roundWinner][0] == 2) {
-		console.log('It was a tie.')
-	}
-	
-	if (whoWins[roundWinner][1] == whoWins[2][1]) {
-		console.log('This round was a tie.')
-	} else {
-		console.log(`This round was won by the ${capitalizedRoundWinner}.`)
-	}
-	
-	playedRounds++
+function getRoundWinner(playerChoice, computerChoice) {
+	return whoBeatsWho[playerChoice[0]][computerChoice[0]]
 }
 
-
-// To get the winner for the round, we need to loop the variable whoBeatsWho,
-// and return the subarray where its 0 index corresponds to playerSelection
-// and its 1 index corresponds to computerSelection.
-// This one was tricky to get.
-
-
-function getRoundWinner(playerSelection, computerSelection) {
-	let result
+function playRound(chosenMove) {
+	let playerChoice = moves[chosenMove]
+	let computerChoice = getComputerChoice()
 	
-	whoBeatsWho.forEach((possibleResult) => {
-		if (possibleResult[0] == playerSelection && possibleResult[1] == computerSelection) {
-			result = possibleResult[2]
+	let roundWinner = getRoundWinner(playerChoice, computerChoice)
+	let hasWinner = false
+
+	playerChoiceParagraph.textContent = `Your choice was ${playerChoice[1]}`
+	computerChoiceParagraph.textContent = `The computer's choice was ${computerChoice[1]}`
+	
+	if (scoreBoard[roundWinner][0] == 0) {
+		winningMove.textContent = `${playerChoice[1]} beats ${computerChoice[1]}.`
+	} else if (scoreBoard[roundWinner][0] == 1) {
+		winningMove.textContent = `${computerChoice[1]} beats ${playerChoice[1]}.`
+	} else if (scoreBoard[roundWinner][0] == 2) {
+		winningMove.textContent = 'This round was a tie.'
+	}
+	
+	// If one of the players has reached 5 points, we need to declare a
+	// winner. We will ignore the number of ties (scoreBoard.length - 1).
+	// If one of the players has reached 5 points, we won't increase the
+	// points but we will start anew.
+	
+	// To keep track if the game has a winner or not, we will check if the
+	// hasWinner variable is true or false.
+	
+	// Since the score starts at 0, we need to check if the score is a 4
+	// rather than a 5.
+	
+	// PROBLEM: If we reset the elements when score[2] == 4, the winner
+	// won't appear. I will add a setTimeout event and reset the HTML elements
+	// after a few seconds, I don't know if it will fix the issue.
+	
+	// SPOILER: It did work.
+	
+	scoreBoard.forEach((score) => {
+		if(score[2] == 4) {
+			winnerParagraph.textContent = `The ${score[1]} has won the game!`
+			hasWinner = true
+			window.setTimeout(resetChoicesElements, 5000)
 		}
 	})
 	
-	return result
-}
-
-
-// Now we need to create a function that starts the game, repeats the
-// playRound function five times, and gives us the game's winner rather than
-// the round's winner.
-
-
-// I am sure there is a better way to do this part. I will revisit it later.
-// I am not convinced by this function.
-
-
-function game() {
-	for (let index = 0; index <= 4; index++) {
-		playRound()
+	if (hasWinner == false) {
+		scoreBoard[roundWinner][2]++
 	}
 	
-	console.log(`\n\nAnnouncing the Game's Winner!\n\n\n`)
-	
-	if (roundWinners[0][1] == roundWinners[1][1]) {
-		console.log('The game was a tie.')
-	} else if (roundWinners[0][1] > roundWinners[1][1]) {
-		console.log('The game was won by the Player.')
-	} else if (roundWinners[0][1] < roundWinners[1][1]) {
-		console.log('The game was won by the Computer.')
-	}
-	
-	console.log('Thank you for playing!')
+	updateScoreBoardList()
 }
-
-game()
